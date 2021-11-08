@@ -1,0 +1,41 @@
+Gépi látás dokumentáció
+Bevezetés, megoldandó feladat kifejtése
+A biztonsági kamerák használata elterjedt, mind az iparban, mind a hétköznapi életben. A különböző használati esetekben a közös pont az, hogy a biztonság növelhető. Az esetleges lopások, betörések, illetéktelen belépések és sok más büntethető, vagy éppen nem kívánatos eset felvételre vehető, vagy éppen elhárítható. A videófelvételen a mozgás felismerése kritikus szempont. A választott feladatban éppen ezzel a problémával foglalkozom, a felfedezett mozgás nyomonkövetésével kiegészítve. Az eredeti feladatban nem volt meghatározva a mozgó objektumok száma, emiatt a fejlesztendő program egyszerre több mozgó objektumot is tud detektálni és nyomkövetni. A választott programizási nyelv a Python volt, ebből is a 3.8.10-es verzió. A használt külső könyvtárok pedig a következőek voltak: OpenCV 4.2.0, numpy 1.21.4. A fejlesztést pedig az Ubuntu 20.04-es verzión végeztem. A tesztelésnél használt videóanyagok legnagyobb részét saját magam vettem fel. Ide azt is hozzá kell tenni, hogy az alább bemutatott algoritmus csak fixált pozíciójú kamera felvételek esetén fog elvárt módon működni, nincs felkészítve a kamera mozgására, erre majd a tesztesetekben fogok is megerősítő példákat bemutatni. 
+
+Megoldáshoz szükséges elméleti háttér rövid ismertetése -2 oldal
+Gépi látás röviden Digitális képfeldolgozás röviden
+A szükséges elméleti háttér ismertetése előtt, pár fontos fogalmat és álláspontot kell tisztázni. A teljesen mélyreható elméleti háttér ismertetésétől eltekintek ebben a dolgozatban, feltételezem hogy az olvasó már legalább alap szinten tisztában van a gépi látás valamint a digitális képfeldolgozás témakörével. Így a magyarázott fogalmak a bemutatott feladathoz szorosan kapcsolódnak és csak azt a kis szeletét fogom a digitális képfeldolgozásnak, röviden, bemutatni ami releváns a probléma megoldásához. Először is a gépi látás és digitális képfeldolgozás fogalmakat kell megmagyarázni. A gépi látás a mesterséges intelligencia tudományterületének egy szelete. A célja olyan automatizált algoritmusok létrehozása, amelyek képesek valamilyen következtetést levonni a kapott digitális képekből. Neurális hálókat és mély tanulást alkalmaznak ezek a rendszerek. Míg a digitális képfeldolgozás a megkapott digitális képből egy adott modell vagy algoritmus alapján egy manipulált digitális képet állít elő. Itt az eljárások a következők lehetnek: hisztogram, szegmentálás, tömörítés. Nem beszélhetünk semilyen gép által levont következtetésről az egyes manipulációk után. A két területnek sok közös témája van, ez is az egyik oka lehet az esetleges összetévesztéseknek. A saját kidolgozott algoritmus tehát a digitális képfeldolgozás területébe esik. 
+Digitális kép felépítése
+A látható fénytartomány adja meg az emberi szem számára a színskálát. Ezt a színskálát valahogyan értelmezni kellett a számítógépek világában is. Erre az egyik módszer az RGB színcsatornák használata, természetesen ezen kívül van más megközelítés is. (HSV) Ahhoz hogy megértsük hogyan kezel egy színes képet a számítógép azt kell tudnunk hogy egy digitális kép, mint minden információ az informatika világában kis adategységekből épülnek fel. Ezt az informatikai adategységet nevezzük bitnek, 8 bit pedig egy bájt. Egy bájt pedig 28  (256) féle számot tárolhat. A színek reprezentálása az RGB színskála szerint van értelmezve ebben a probléma megoldásban. Az egyes szinek értéke a benne található piros (red), zöld (green), kék (blue) alapszínek mennyiségétől függ. Egy-egy szín egy színcsatornát jelent. Az egyes színcsatornák értéke pedig 0-255 ig terjed. A 0 a legalacsonyabb míg a 255 a legmagasabb intenzitást jelenti. A színcsatornáknál egy színcsatorna, egy bájtot jelent. Emiatt ha egy RGB színkód (0,0,0) akkor fehér színt lát az ember, míg (255,255,255), akkor feketét. Itt fontos megjegyezni hogy az emberi szem korlátai miatt ha az előbbi fekete értéket (254,254,254)-re változtatjuk, akkor számunkra ránézésre nem lesz látható és érzékelhető különbség, viszont egy gépi algorimtus esetén természetesen lesz.  A videófelvételeket képkockánként lépegetve fogom az algoritmusnak táplálni, ezért a videót digitális képek sorozatának is fel lehet fogni. Az egyes képek pedig pixelekből (magyarul:képpont) épülnek fel. A képpontok értékei pedig a nekik megfelelő RGB színkód értéke. 
+
+Megvalósítás terve és kivitelezése -4 oldal
+Terv nagyban majd részletesen
+A megvalósítás vázlatos terve két fő részből áll. Magából a mozgás detektáló algoritmusból valamint a háttér kinyerése. Az első rész fő elemei a következőek: szürkeárnyalatos konverzio, abszolút differencia számítás, zajszűrés, küszöbértékelés, nyújtás(?), kontúrok keresése majd téglalapok rajzolása a detektált mozgó objektúmok köré. A háttér kinyerését pedig a következő bekezdésben fejteném ki részletesen. 
+Háttér kinyerése (TODO ide függvény)
+A cv2 függvénnyel  kinyerjük az összes megtalálható képkockát majd ebből egy numpy függvény segítségével mintát veszünk. Ebből a 30 darab képkockából majd egy képet állítunk. Ezt a képet pedig medián számítással egy változóban eltároljuk, így lesz egy összehasonlítás alapunk amikor a mozgást keressük a képen. 
+Szürkeárnyalat konverzió
+Az eredetileg szines képeket egy cv2.-- függvény segítségével szürkeárnyalatos képpé konvertálom. Erre egyrészt a függvények számítási segítsége miatt van szükség, hiszen nem 3 csatornán hanem 2 csatornán lesz csak adat. Emiatt a számítási idők lényegesen rövidülnek. Valamint azért is szükséges a ebben a probléma megoldásban a konverzió, mert a szín mint információ, nincs hatással a mozgásokra, irreveláns információ az esetünkben, hogy a labda ami pattog az piros e vagy kék, most a pattogás és annak nyomonkövetése a szempont. A fény intenzitás változás a mozgás detektálás alapja az algoritmusban, így egy szürkeárnyalatos képpel tovább dolgozni lehet és előnyös. 
+Abszolút differencia számítás
+A következő lépés a kiszámolt medián háttér és a jelenlegi képkocka egymásból való kivonása. Erre is van többféle módszer, hiszen ki lehet futni a tartományból mind az összeadásnál, mind a kivonásnál. Az általam választott függvény a cv2.absdiff(), amely az abszolút különbéget veszi a két kép között, így nem lesz a 0-255 értéktartományból kilépés. Ez a lépés a mozgás detektálás alapja, hiszen ahol semilyen mozgó objektum nincs, ott 0 vagy ahhoz közeli lesz a kivonás értéke, ahol viszont van eltérés a két kép között (fényváltozás), ott feltehetőleg mozgás történik. 
+Zajszűrés
+A következő lépés a zajszűrés, az itt használt függvény a cv2.GaussianBlur(). Ez a függvény a Gauss szürőt használja. Paraméternek pedig a kernel méretét lehet beállítani, ez a kernel méret jelen esetben 5x5 volt. 
+Küszöbérték keresés
+A küszöbérték keresés lényege, hogy egy adott értékhez viszonyítva mondjuk meg, hogy az adott pixelpont 0-ás vagy 1-es értéket vesz fel. Ezt az értéket kézzel is be lehet állítani, a saját megoldásban viszont a beépített cv2-es Otsu algoritmust használom. Ez az algoritmus automatikusan keresi meg az ideális küszöbértéket hisztogram használatával. Ezzel a plusz paraméterrel van használva a küszöbérték keresés.
+Körvonal keresés majd határoló dobozok rajzolása
+A cv2.findContours() fügvénnyel oldom meg az első lépést. A függvény egy bináris képen körülhatárolja a fehér pontokat és visszaadja a megtalált pontokat. Majd ezekre a pontokra a cv2.boundingRect() fügvénnyel egy körülhatároló téglalap pontjait megadom. Ha az adott téglalap területe (cv2.contourArea) túllép egy bizonyos határt, akkor mozgásnak veszem és egy körülhatároló színes téglalapot rajzolok köré a cv2.rectangle() fügvénnyel.
+Tesztelés -2,5 oldal
+Tesztesetek lebontása
+Rosszak
+Jók
+
+Felhasználói leírás
+windows/linux?
+A program futtatásához a következő programok szükségesek:
+Python 3.8.10 verzió
+OpenCV 4.2.0 verzió
+numpy csomag
+A csomagokat a requirements.txt-be kimentettem és egy pip parancs segítségével egyszerre le lehet tölteni a követelményeket a txt segítségével.
+venv-pip-run
+
+Irodalomjegyzék
+Gépi látás jegyzet TODO
