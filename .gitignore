@@ -1,3 +1,4 @@
 sima.py
 __pychache__/
 venv/
+*.pyc
