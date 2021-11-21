@@ -5,12 +5,9 @@ video = "barik2.MOV"
 
 
 def exctractBackground():
-    #alma = "IMG_1.MOV"
     cap = cv2.VideoCapture(video)
-    #Randomly selecting 30 frames
+    #random 30 frames
     frame_get = cap.get(cv2.CAP_PROP_FRAME_COUNT) * np.random.uniform(size = 30)
-    #print(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    #Storing captured frames in an array
     frames = []
     for i in frame_get:
       cap.set(cv2.CAP_PROP_POS_FRAMES, i)
@@ -18,26 +15,21 @@ def exctractBackground():
       frames.append(frame)
     global frame_median
     frame_median = np.median(frames, axis = 0).astype(dtype = np.uint8)
-
     #frame_avg = np.average(frames, axis = 0).astype(dtype = np.uint8)
-    #frame_sample = frames[0]
     cap.release()
-
-    #return frame_median
 
 def motionDetection():
     gray_frame_median = cv2.cvtColor(frame_median, cv2.COLOR_BGR2GRAY)
-    #gray_frame_sample = cv2.cvtColor(frame_sample, cv2.COLOR_BGR2GRAY)
+    #gray_frame_avg = cv2.cvtColor(frame_avg, cv2.COLOR_BGR2GRAY)
     cap = cv2.VideoCapture(video)
     while cap.isOpened():
       ret, frame = cap.read()
-      # Converting frame to grayscale
+      # convert frame->grayscale
       gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
+      # blur after grayscale
       blur_gray_frame = cv2.GaussianBlur(gray_frame, (5,5), 0)
-      # Calculating Absolute Difference between Current Frame and Median Frame
+      # absdiff calculate
       blur_frame = cv2.absdiff(blur_gray_frame, gray_frame_median)
-      # Applying Gaussian Blur to reduce noise
       #blur_frame = cv2.GaussianBlur(dframe, (5,5), 0)
 
       # Binarizing frame - Thresholding
@@ -48,9 +40,8 @@ def motionDetection():
       # belong to the object and
       #  those that belong to the background, the large amount of noise
 
-      #thresh = cv2.threshold(blur_frame, 50, 255, cv2.THRESH_BINARY) [1]
-
-      thresh = cv2.threshold(blur_frame, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) [1]
+      thresh = cv2.threshold(blur_frame, 50, 255, cv2.THRESH_BINARY) [1]
+      #thresh = cv2.threshold(blur_frame, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU) [1]
       #thresh = cv2.adaptiveThreshold(blur_frame, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,3, 2)
       #dilated csak nagyítja a feher reszeket, 73/ >500 amiatt ilyen nagy
       #dilated = cv2.dilate(thresh, None, iterations=3)
@@ -60,23 +51,16 @@ def motionDetection():
           (x, y, w, h) = cv2.boundingRect(contour)
           if cv2.contourArea(contour) > 200:
             cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 255), 2)
-          #cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
       
       resized_frame = cv2.resize(frame, (0,0), fx=0.8, fy =0.5)
       #resized_mask = cv2.resize(thresh, (0,0), fx=0.8, fy=0.5)
      
       cv2.imshow("Vegso vidi", resized_frame)
-      #cv2.imshow("miet", resized_mask)
-      #cv2.imshow("absdifframe", dframe)
-      #cv2.imshow("thres", thresh)
-      #cv2.imshow("vidi", frame)
-      #cv2.imshow("median", gray_frame_median)
-      #cv2.imshow("sample", gray_frame_sample)
+
       key = cv2.waitKey(1) & 0xFF
       # if the `q` key is pressed, break from the lop
       if key == ord("q"):
           break
-    # Releasing Video Object
     cap.release()
     cv2.destroyAllWindows()
 
